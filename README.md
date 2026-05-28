@@ -1,7 +1,7 @@
-# Laporan Proyek: Sistem Monitoring Sensor Lingkungan berbasis IoT, Web, dan AI
+# Laporan Analisis: Sistem Monitoring Sensor Lingkungan berbasis IoT, Web, dan AI
 
-**Nama Proyek:** IoT Environmental Sensor Monitoring System  
-**Lokasi:** `/home/mamen/LAMP/www/iot-ai-sensor-system`  
+**Objek Analisis:** IoT Environmental Sensor Monitoring System  
+**Lokasi Proyek:** `/home/mamen/LAMP/www/iot-ai-sensor-system`  
 **Lingkungan:** Linux, XAMPP, PHP Native, MySQL, Python  
 
 ---
@@ -28,11 +28,11 @@ Perkembangan teknologi Internet of Things (IoT) telah membuka peluang baru dalam
 
 Di sisi lain, perkembangan kecerdasan buatan (AI) khususnya machine learning memungkinkan analisis data sensor secara otomatis. Model klasifikasi dapat memprediksi status lingkungan — normal, waspada, atau berbahaya — berdasarkan pola data historis. Namun, model AI yang telah dilatih memerlukan infrastruktur agar dapat diakses dan digunakan oleh aplikasi nyata.
 
-Proyek ini menjawab kebutuhan tersebut dengan mengintegrasikan tiga platform teknologi: IoT (sebagai sumber data), Web (sebagai antarmuka dan middleware), dan AI (sebagai mesin inferensi). Ketiga platform tersebut dirangkai dalam satu kesatuan arsitektur yang utuh.
+Proyek yang dianalisis dalam laporan ini menjawab kebutuhan tersebut dengan mengintegrasikan tiga platform teknologi: IoT (sebagai sumber data), Web (sebagai antarmuka dan middleware), dan AI (sebagai mesin inferensi). Ketiga platform tersebut dirangkai dalam satu kesatuan arsitektur yang utuh.
 
-### 1.2 Tujuan
+### 1.2 Tujuan Proyek
 
-Tujuan proyek ini adalah sebagai berikut:
+Berdasarkan dokumentasi dan struktur sistem yang tersedia, proyek ini memiliki empat tujuan utama sebagai berikut:
 
 1. Membangun sistem simulasi data sensor lingkungan yang merepresentasikan perangkat IoT.
 2. Menyediakan dashboard web untuk memantau data sensor dan hasil prediksi secara real-time.
@@ -41,7 +41,7 @@ Tujuan proyek ini adalah sebagai berikut:
 
 ### 1.3 Ruang Lingkup
 
-Ruang lingkup proyek ini meliputi:
+Ruang lingkup proyek meliputi:
 
 1. Simulasi data sensor lingkungan menggunakan PHP sebagai representasi perangkat IoT.
 2. Basis data MySQL untuk menyimpan data sensor mentah dan hasil prediksi.
@@ -53,7 +53,7 @@ Ruang lingkup proyek ini meliputi:
 
 ## 2. Teknologi yang Digunakan
 
-Proyek ini mengintegrasikan tiga kelompok teknologi yang masing-masing berada dalam platform IoT, Web, dan AI. Berikut adalah rincian teknologi beserta perannya dalam sistem.
+Proyek yang dianalisis mengintegrasikan tiga kelompok teknologi yang masing-masing berada dalam platform IoT, Web, dan AI. Berikut adalah rincian teknologi beserta perannya dalam sistem.
 
 ### 2.1 Platform Web (Frontend dan Backend)
 
@@ -128,7 +128,7 @@ iot-ai-sensor-system/
 ├── database.sql                  # Skema database
 ├── index.php                     # Dashboard utama
 ├── tampilan.png                  # Tangkapan layar hasil uji coba
-└── README.md                     # Laporan proyek ini
+└── README.md                     # Laporan analisis proyek
 ```
 
 ### 3.2 Arsitektur Database
@@ -159,7 +159,7 @@ Tabel ini menyimpan dua kategori data:
 
 ### 3.3 Alur Sistem
 
-Berikut adalah diagram alur sistem secara keseluruhan:
+Berikut adalah diagram alur sistem secara keseluruhan berdasarkan hasil pengamatan terhadap kode sumber:
 
 ```
 [IoT Simulation]          [Web Platform]            [AI Engine]
@@ -205,13 +205,13 @@ Hasil uji coba membuktikan bahwa seluruh rantai integrasi — dari simulasi sens
 
 ## 5. Analisis Integrasi Tiga Platform: IoT, Web, dan AI
 
-Sistem ini mengintegrasikan tiga platform teknologi — Internet of Things (IoT), Web, dan Artificial Intelligence (AI) — dalam satu kesatuan arsitektur yang saling bergantung. Setiap platform memiliki tanggung jawab yang spesifik, dan ketiganya membentuk alur data yang utuh: dari akuisisi data sensor hingga penyajian hasil prediksi kepada pengguna.
+Sistem yang dianalisis mengintegrasikan tiga platform teknologi — Internet of Things (IoT), Web, dan Artificial Intelligence (AI) — dalam satu kesatuan arsitektur yang saling bergantung. Setiap platform memiliki tanggung jawab yang spesifik, dan ketiganya membentuk alur data yang utuh: dari akuisisi data sensor hingga penyajian hasil prediksi kepada pengguna.
 
 ### 5.1 Peran dan Fungsi Setiap Platform
 
 #### 5.1.1 Internet of Things (IoT) sebagai Sumber Data
 
-Internet of Things berperan sebagai sumber data lingkungan. Dalam proyek ini, peran IoT direpresentasikan melalui simulasi berbasis PHP. Parameter-parameter yang dihasilkan — temperature, humidity, CO, LPG, smoke, light_intensity, dan motion_status — merepresentasikan pembacaan sensor fisik pada dunia nyata.
+Internet of Things berperan sebagai sumber data lingkungan. Dalam proyek yang dianalisis, peran IoT direpresentasikan melalui simulasi berbasis PHP. Parameter-parameter yang dihasilkan — temperature, humidity, CO, LPG, smoke, light_intensity, dan motion_status — merepresentasikan pembacaan sensor fisik pada dunia nyata.
 
 Setiap data sensor dikirimkan ke server melalui protokol HTTP dengan metode POST. Mekanisme ini meniru cara kerja perangkat IoT sungguhan yang mengirimkan data secara periodik ke server pusat. Data yang terkumpul menjadi masukan utama bagi seluruh proses analisis dan pengambilan keputusan dalam sistem.
 
@@ -235,7 +235,7 @@ Proses inferensi berlangsung sebagai berikut:
 
 ### 5.2 Alur Integrasi Antarplatform
 
-Alur kerja sistem mengikuti siklus yang menghubungkan ketiga platform secara berurutan. Berikut adalah delapan langkah integrasi yang membentuk siklus tersebut:
+Alur kerja sistem mengikuti siklus yang menghubungkan ketiga platform secara berurutan. Berdasarkan pengamatan terhadap kode sumber, terdapat delapan langkah integrasi yang membentuk siklus tersebut:
 
 **Langkah 1 — IoT ke Web (Pengiriman Data Sensor)**
 
@@ -288,7 +288,7 @@ Ketiga platform membentuk sistem pemantauan lingkungan yang cerdas, otonom, dan 
 
 ## 6. Kesimpulan
 
-Berdasarkan hasil perancangan, implementasi, dan uji coba yang telah dilakukan, dapat ditarik beberapa kesimpulan sebagai berikut:
+Berdasarkan hasil analisis terhadap proyek yang telah diuji coba, terdapat beberapa temuan utama sebagai berikut:
 
 1. **Integrasi tiga platform berhasil diimplementasikan**. Sistem mampu menghubungkan IoT (simulasi sensor), Web (PHP dashboard), dan AI (model Random Forest) dalam satu kesatuan arsitektur yang saling bergantung.
 
@@ -298,9 +298,9 @@ Berdasarkan hasil perancangan, implementasi, dan uji coba yang telah dilakukan, 
 
 4. **Prediksi AI memberikan nilai tambah pada data sensor mentah**. Data lingkungan yang semula hanya berupa angka-angka dapat diinterpretasikan menjadi status yang bermakna (NORMAL, WARNING, DANGER) lengkap dengan skor kepercayaan.
 
-Proyek ini membuktikan bahwa integrasi IoT, Web, dan AI dapat diwujudkan dengan teknologi yang relatif sederhana — PHP, MySQL, dan Python — tanpa memerlukan infrastruktur cloud yang kompleks. Sistem ini dapat menjadi fondasi untuk pengembangan lebih lanjut, seperti penambahan perangkat IoT fisik, penggunaan model deep learning, atau penerapan notifikasi otomatis.
+Proyek yang dianalisis membuktikan bahwa integrasi IoT, Web, dan AI dapat diwujudkan dengan teknologi yang relatif sederhana — PHP, MySQL, dan Python — tanpa memerlukan infrastruktur cloud yang kompleks. Sistem ini dapat menjadi fondasi untuk pengembangan lebih lanjut, seperti penambahan perangkat IoT fisik, penggunaan model deep learning, atau penerapan notifikasi otomatis.
 
 ---
 
-**Dokumen ini disusun sebagai laporan proyek integrasi IoT, Web, dan AI.**  
+**Dokumen ini disusun sebagai laporan analisis terhadap proyek integrasi IoT, Web, dan AI.**  
 Lingkungan pengembangan: Linux / XAMPP / PHP Native / MySQL / Python 3.12 / scikit-learn 1.8.0
