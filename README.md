@@ -82,7 +82,7 @@ Proyek yang dianalisis mengintegrasikan tiga kelompok teknologi yang masing-masi
 | **numpy** | 2.4.6 | Pustaka komputasi numerik yang menjadi fondasi operasi matriks dalam proses scaling dan prediksi. |
 | **joblib** | 1.5.3 | Pustaka yang memuat (load) file `model.pkl`, `scaler.pkl`, dan `label_encoder.pkl` dari sistem file. |
 
-### 2.4 Lingkungan Pengembangan
+### 2.4 Lingkungan Uji Coba
 
 | Komponen | Spesifikasi |
 |----------|-------------|
@@ -303,4 +303,4 @@ Proyek yang dianalisis membuktikan bahwa integrasi IoT, Web, dan AI dapat diwuju
 ---
 
 **Dokumen ini disusun sebagai laporan analisis terhadap proyek integrasi IoT, Web, dan AI.**  
-Lingkungan pengembangan: Linux / XAMPP / PHP Native / MySQL / Python 3.12 / scikit-learn 1.8.0
+Lingkungan uji coba: Linux / XAMPP / PHP Native / MySQL / Python 3.12 / scikit-learn 1.8.0
