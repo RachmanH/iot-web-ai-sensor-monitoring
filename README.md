@@ -1,1139 +1,306 @@
-# IoT Environmental Sensor Monitoring with PHP, MySQL, and Python AI Model
+# Laporan Proyek: Sistem Monitoring Sensor Lingkungan berbasis IoT, Web, dan AI
 
-<img src="tampilan.png">
+**Nama Proyek:** IoT Environmental Sensor Monitoring System  
+**Lokasi:** `/home/mamen/LAMP/www/iot-ai-sensor-system`  
+**Lingkungan:** Linux, XAMPP, PHP Native, MySQL, Python  
 
-Project ini adalah aplikasi web sederhana untuk simulasi data sensor lingkungan berbasis **PHP**, **MySQL**, dan **Python lokal**. Aplikasi ini dapat melakukan generate data sensor secara otomatis, menyimpan data ke database, memanggil model AI dari file `.pkl`, lalu menampilkan hasil prediksi pada dashboard web.
+---
 
-Project ini tidak menggunakan Flask. PHP memanggil script Python lokal melalui `shell_exec()` untuk membaca file model hasil Google Colab.
+## Daftar Isi
 
-## 1. Fitur Aplikasi
+1. [Pendahuluan](#1-pendahuluan)
+2. [Teknologi yang Digunakan](#2-teknologi-yang-digunakan)
+3. [Arsitektur Sistem](#3-arsitektur-sistem)
+4. [Hasil Uji Coba](#4-hasil-uji-coba)
+5. [Analisis Integrasi Tiga Platform: IoT, Web, dan AI](#5-analisis-integrasi-tiga-platform-iot-web-dan-ai)
+   - 5.1 Peran dan Fungsi Setiap Platform
+   - 5.2 Alur Integrasi Antarplatform
+   - 5.3 Sinergi dan Manfaat Integrasi
+6. [Kesimpulan](#6-kesimpulan)
 
-Aplikasi ini memiliki fitur utama sebagai berikut:
+---
 
-1. Simulasi data sensor lingkungan.
-2. Penyimpanan data sensor ke MySQL.
-3. Dashboard monitoring data sensor terbaru.
-4. Riwayat data sensor.
-5. Prediksi status sensor menggunakan model AI Python.
-6. Realtime generate dan prediksi otomatis setiap 30 detik.
-7. Penyimpanan hasil prediksi ke database.
+## 1. Pendahuluan
+
+### 1.1 Latar Belakang
+
+Perkembangan teknologi Internet of Things (IoT) telah membuka peluang baru dalam pemantauan lingkungan secara real-time. Sensor-sensor lingkungan — seperti suhu, kelembapan, kadar gas, intensitas cahaya, dan deteksi gerakan — dapat dipasang di berbagai lokasi untuk mengumpulkan data secara kontinu. Data yang terkumpul memerlukan pengolahan lebih lanjut agar dapat memberikan informasi yang bermakna bagi pengguna.
+
+Di sisi lain, perkembangan kecerdasan buatan (AI) khususnya machine learning memungkinkan analisis data sensor secara otomatis. Model klasifikasi dapat memprediksi status lingkungan — normal, waspada, atau berbahaya — berdasarkan pola data historis. Namun, model AI yang telah dilatih memerlukan infrastruktur agar dapat diakses dan digunakan oleh aplikasi nyata.
+
+Proyek ini menjawab kebutuhan tersebut dengan mengintegrasikan tiga platform teknologi: IoT (sebagai sumber data), Web (sebagai antarmuka dan middleware), dan AI (sebagai mesin inferensi). Ketiga platform tersebut dirangkai dalam satu kesatuan arsitektur yang utuh.
+
+### 1.2 Tujuan
+
+Tujuan proyek ini adalah sebagai berikut:
+
+1. Membangun sistem simulasi data sensor lingkungan yang merepresentasikan perangkat IoT.
+2. Menyediakan dashboard web untuk memantau data sensor dan hasil prediksi secara real-time.
+3. Mengintegrasikan model machine learning (Random Forest) yang telah dilatih di Google Colab ke dalam aplikasi web.
+4. Menganalisis pola integrasi antara platform IoT, Web, dan AI dalam satu sistem yang berfungsi.
+
+### 1.3 Ruang Lingkup
+
+Ruang lingkup proyek ini meliputi:
+
+1. Simulasi data sensor lingkungan menggunakan PHP sebagai representasi perangkat IoT.
+2. Basis data MySQL untuk menyimpan data sensor mentah dan hasil prediksi.
+3. Dashboard web berbasis PHP, HTML, CSS, dan JavaScript.
+4. Model Random Forest dalam format `.pkl` untuk klasifikasi status lingkungan.
+5. Skrip Python sebagai jembatan antara PHP dan model machine learning.
+
+---
 
 ## 2. Teknologi yang Digunakan
 
-Project ini mengintegrasikan tiga platform teknologi, yaitu IoT (simulasi), Web, dan AI. Setiap teknologi memiliki peran spesifik sebagai berikut:
+Proyek ini mengintegrasikan tiga kelompok teknologi yang masing-masing berada dalam platform IoT, Web, dan AI. Berikut adalah rincian teknologi beserta perannya dalam sistem.
 
 ### 2.1 Platform Web (Frontend dan Backend)
 
-| Teknologi | Peran dalam Sistem |
-|-----------|--------------------|
-| **PHP Native** | Bahasa pemrograman backend yang memproses data sensor, berkomunikasi dengan database MySQL, memanggil skrip Python untuk inferensi AI, dan merender halaman dashboard. |
-| **MySQL** | Sistem manajemen basis data relasional yang menyimpan data sensor mentah dan hasil prediksi secara permanen. |
-| **HTML & CSS** | Bahasa markup dan styling yang membangun antarmuka dashboard pengguna. |
-| **JavaScript** | Bahasa skrip klien yang menangani pembaruan halaman secara real-time melalui polling AJAX setiap 30 detik. |
-| **XAMPP** | Paket server lokal yang menyediakan lingkungan Apache, PHP, dan MySQL dalam satu kesatuan. |
+| Teknologi | Versi | Peran dalam Sistem |
+|-----------|-------|--------------------|
+| **PHP Native** | 8.x | Bahasa pemrograman backend yang memproses data sensor, berkomunikasi dengan database MySQL, memanggil skrip Python melalui `shell_exec()`, dan merender halaman dashboard. |
+| **MySQL** | 8.x | Sistem manajemen basis data relasional yang menyimpan data sensor mentah dan hasil prediksi dalam tabel `sensor_data`. |
+| **HTML5** | — | Bahasa markup yang membangun struktur halaman dashboard. |
+| **CSS3** | — | Lembar gaya yang mengatur tata letak, warna, dan responsivitas dashboard. |
+| **JavaScript (Vanilla)** | ES6 | Bahasa skrip klien yang menangani pembaruan halaman secara real-time melalui mekanisme polling AJAX setiap 30 detik. |
+| **XAMPP** | 8.x | Paket server lokal yang menyediakan lingkungan Apache HTTP Server, interpreter PHP, dan MySQL dalam satu kesatuan perangkat lunak. |
 
 ### 2.2 Platform IoT (Simulasi Sensor)
 
 | Teknologi | Peran dalam Sistem |
 |-----------|--------------------|
-| **PHP Native** | Bertindak sebagai generator data sensor simulasi yang menghasilkan tujuh parameter lingkungan secara acak, meliputi temperature, humidity, CO, LPG, smoke, light_intensity, dan motion_status. |
+| **PHP Native** | Bertindak sebagai generator data sensor simulasi yang menghasilkan tujuh parameter lingkungan secara acak dalam rentang nilai tertentu. Parameter tersebut meliputi temperature (25.0–42.0 °C), humidity (30.0–90.0 %), CO (0.001–0.009), LPG (0.001–0.012), smoke (0.1–0.9), light_intensity (0–1000 lux), dan motion_status (0 atau 1). |
 
 ### 2.3 Platform AI (Machine Learning)
 
-| Teknologi | Peran dalam Sistem |
-|-----------|--------------------|
-| **Python** | Bahasa pemrograman yang menjalankan skrip inferensi `predict.py` dan membaca file model `.pkl` dari Google Colab. |
-| **scikit-learn** | Pustaka machine learning yang menyediakan algoritma Random Forest untuk klasifikasi status lingkungan menjadi NORMAL, WARNING, atau DANGER. |
-| **pandas** | Pustaka manipulasi data yang digunakan untuk menyusun DataFrame input dari data sensor sebelum dinormalisasi. |
-| **numpy** | Pustaka komputasi numerik sebagai fondasi operasi matriks dalam proses scaling dan prediksi. |
-| **joblib** | Pustaka yang memuat (load) file model, scaler, dan label encoder dari format `.pkl`. |
+| Teknologi | Versi | Peran dalam Sistem |
+|-----------|-------|--------------------|
+| **Python** | 3.12 | Bahasa pemrograman yang menjalankan skrip inferensi `ai_model/predict.py` dan memuat file model `.pkl` dari Google Colab. |
+| **scikit-learn** | 1.8.0 | Pustaka machine learning yang menyediakan algoritma Random Forest untuk klasifikasi status lingkungan menjadi tiga kelas: NORMAL, WARNING, dan DANGER. |
+| **pandas** | 3.0.3 | Pustaka manipulasi data yang digunakan untuk menyusun DataFrame dari input sensor sebelum proses normalisasi. |
+| **numpy** | 2.4.6 | Pustaka komputasi numerik yang menjadi fondasi operasi matriks dalam proses scaling dan prediksi. |
+| **joblib** | 1.5.3 | Pustaka yang memuat (load) file `model.pkl`, `scaler.pkl`, dan `label_encoder.pkl` dari sistem file. |
+
+### 2.4 Lingkungan Pengembangan
+
+| Komponen | Spesifikasi |
+|----------|-------------|
+| Sistem Operasi | Linux |
+| Server Web | Apache (XAMPP) |
+| Direktori Proyek | `/home/mamen/LAMP/www/iot-ai-sensor-system` |
+| Virtual Environment | `venv/` (Python 3.12) |
+| Database | `iot_sensor_db` (MySQL) |
+
+---
 
 ## 3. Arsitektur Sistem
 
-Alur sistem:
+### 3.1 Struktur Direktori
 
-```text
-Dashboard PHP
-      ↓
-Generate Data Sensor
-      ↓
-Simpan ke MySQL
-      ↓
-PHP memanggil script Python
-      ↓
-Python membaca model.pkl, scaler.pkl, label_encoder.pkl
-      ↓
-Python mengembalikan hasil prediksi JSON
-      ↓
-PHP menyimpan hasil prediksi ke MySQL
-      ↓
-Dashboard menampilkan data terbaru dan prediksi
 ```
-
-## 4. Struktur Folder Project
-
-Simpan project di dalam folder `htdocs` XAMPP.
-
-Contoh lokasi untuk macOS:
-
-```text
-/Applications/XAMPP/htdocs/iot-ai-sensor-system
-```
-Catatan: sesuaikan dengan lokasi folder XAMPP kalian di Windows, /Applications/XAMPP/htdocs/iot-ai-sensor-system merupakan alamat folder di Macbook.
-
-Struktur folder:
-
-```text
 iot-ai-sensor-system/
 │
 ├── config/
-│   └── database.php
+│   └── database.php              # Konfigurasi koneksi MySQL
 │
 ├── api/
-│   ├── insert_sensor.php
-│   ├── predict_sensor.php
-│   ├── get_latest_sensor.php
-│   ├── get_sensor_history.php
-│   └── generate_and_predict.php
+│   ├── insert_sensor.php         # Endpoint: menyimpan data sensor (POST)
+│   ├── predict_sensor.php        # Endpoint: prediksi data terbaru (GET)
+│   ├── get_latest_sensor.php     # Endpoint: ambil data sensor terakhir (GET)
+│   ├── get_sensor_history.php    # Endpoint: riwayat data sensor (GET)
+│   └── generate_and_predict.php  # Endpoint: generate + prediksi otomatis (GET)
 │
 ├── simulation/
-│   └── generate_sensor.php
+│   └── generate_sensor.php       # Endpoint: generate data sensor manual (GET)
 │
 ├── ai_model/
-│   ├── model.pkl
-│   ├── scaler.pkl
-│   ├── label_encoder.pkl
-│   ├── predict.py
-│   └── requirements.txt
+│   ├── model.pkl                 # Model Random Forest (hasil training Colab)
+│   ├── scaler.pkl                # StandardScaler untuk normalisasi fitur
+│   ├── label_encoder.pkl         # LabelEncoder untuk encoding label
+│   ├── predict.py                # Skrip Python untuk inferensi
+│   └── requirements.txt          # Daftar dependensi Python
 │
 ├── assets/
-│   └── style.css
+│   └── style.css                 # Lembar gaya dashboard
 │
-├── venv/
-├── index.php
-└── database.sql
+├── venv/                         # Virtual environment Python
+├── database.sql                  # Skema database
+├── index.php                     # Dashboard utama
+├── tampilan.png                  # Tangkapan layar hasil uji coba
+└── README.md                     # Laporan proyek ini
 ```
 
-## 5. Persiapan Database
+### 3.2 Arsitektur Database
 
-Buka phpMyAdmin:
-
-```text
-http://localhost/phpmyadmin
-```
-
-Buat database dan tabel dengan menjalankan file `database.sql`.
-
-Isi file `database.sql`:
+Sistem menggunakan satu tabel utama bernama `sensor_data` dengan skema sebagai berikut:
 
 ```sql
-CREATE DATABASE IF NOT EXISTS iot_sensor_db;
-
-USE iot_sensor_db;
-
-DROP TABLE IF EXISTS sensor_data;
-
 CREATE TABLE sensor_data (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    device_id VARCHAR(50) NOT NULL,
-    temperature DECIMAL(6,2) NOT NULL,
-    humidity DECIMAL(6,2) NOT NULL,
-    co DECIMAL(10,6) NOT NULL,
-    lpg DECIMAL(10,6) NOT NULL,
-    smoke DECIMAL(10,6) NOT NULL,
-    light_intensity INT NOT NULL,
-    motion_status TINYINT NOT NULL,
+    id               INT AUTO_INCREMENT PRIMARY KEY,
+    device_id        VARCHAR(50) NOT NULL,
+    temperature      DECIMAL(6,2) NOT NULL,
+    humidity         DECIMAL(6,2) NOT NULL,
+    co               DECIMAL(10,6) NOT NULL,
+    lpg              DECIMAL(10,6) NOT NULL,
+    smoke            DECIMAL(10,6) NOT NULL,
+    light_intensity  INT NOT NULL,
+    motion_status    TINYINT NOT NULL,
     prediction_label ENUM('NORMAL', 'WARNING', 'DANGER') NULL,
     prediction_score DECIMAL(6,4) NULL,
     prediction_reason TEXT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at       TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 ```
 
-## 6. Konfigurasi Koneksi Database
+Tabel ini menyimpan dua kategori data:
+- **Data sensor mentah**: device_id, temperature, humidity, co, lpg, smoke, light_intensity, dan motion_status.
+- **Data hasil prediksi**: prediction_label, prediction_score, dan prediction_reason yang diisi oleh sistem setelah proses inferensi selesai.
 
-Buat file:
+### 3.3 Alur Sistem
 
-```text
-config/database.php
+Berikut adalah diagram alur sistem secara keseluruhan:
+
+```
+[IoT Simulation]          [Web Platform]            [AI Engine]
+       │                       │                        │
+       │─── HTTP POST ────────>│                        │
+       │   (sensor data)       │                        │
+       │                       │─── INSERT ────────────>│
+       │                       │   (MySQL)              │
+       │                       │                        │
+       │                       │─── shell_exec() ──────>│
+       │                       │   (JSON input)         │─── load .pkl ──> [Model Files]
+       │                       │                        │─── predict() ──> [Random Forest]
+       │                       │<── JSON result ────────│
+       │                       │   (label + score)      │
+       │                       │                        │
+       │                       │─── UPDATE ────────────>│
+       │                       │   (MySQL)              │
+       │                       │                        │
+       │                       │─── render ────────────>│
+       │                       │   (dashboard)          │
+       │<── tampilan web ──────│                        │
 ```
 
-Isi file:
+---
 
-```php
-<?php
-
-$host = "localhost";
-$username = "root";
-$password = "";
-$database = "iot_sensor_db";
-
-$conn = new mysqli($host, $username, $password, $database);
-
-if ($conn->connect_error) {
-    http_response_code(500);
-    die(json_encode([
-        "status" => "error",
-        "message" => "Koneksi database gagal",
-        "error" => $conn->connect_error
-    ]));
-}
-
-$conn->set_charset("utf8mb4");
-
-?>
-```
-
-Catatan:
-
-Untuk XAMPP, konfigurasi default biasanya:
-
-```text
-username: root
-password: kosong
-```
-
-## 7. Persiapan File Model AI
-
-Kode Google Colab: https://colab.research.google.com/drive/1O4S76NzWAViOwUK4Ggd08v-CmWklpuCo?usp=sharing
-Akses Model: https://drive.google.com/drive/folders/1BPFgM3Yo95k-00X2Nu8xVjUAZMccM8iH?usp=sharing
-
-Masukkan tiga file model dari Google Colab ke folder:
-
-```text
-ai_model/
-```
-
-File yang wajib ada:
-
-```text
-model.pkl
-scaler.pkl
-label_encoder.pkl
-```
-
-Pastikan nama file sesuai. Jika file masih bernama `scaler (1).pkl`, ubah menjadi:
-
-```text
-scaler.pkl
-```
-
-## 8. Membuat Virtual Environment Python
-
-Masuk ke folder project:
-
-```bash
-cd /Applications/XAMPP/htdocs/iot-ai-sensor-system
-```
-Catatan: sesuaikan dengan lokasi folder XAMPP kalian di Windows, /Applications/XAMPP/htdocs/iot-ai-sensor-system merupakan alamat folder di Macbook.
-
-Buat virtual environment:
-
-```bash
-python3 -m venv venv
-```
-
-Aktifkan virtual environment:
-
-```bash
-source venv/bin/activate
-```
-
-Install library Python:
-
-```bash
-pip install pandas numpy scikit-learn joblib
-```
-
-Jika model dibuat menggunakan scikit-learn versi tertentu, gunakan versi yang sama. Contoh:
-
-```bash
-pip install scikit-learn==1.6.1 pandas numpy joblib
-```
-
-Simpan daftar library:
-
-```bash
-pip freeze > ai_model/requirements.txt
-```
-
-## 9. Script Python untuk Prediksi
-
-Buat file:
-
-```text
-ai_model/predict.py
-```
-
-Isi file:
-
-```python
-import sys
-import json
-import os
-import joblib
-import pandas as pd
-
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
-MODEL_PATH = os.path.join(BASE_DIR, "model.pkl")
-SCALER_PATH = os.path.join(BASE_DIR, "scaler.pkl")
-LABEL_ENCODER_PATH = os.path.join(BASE_DIR, "label_encoder.pkl")
-
-FEATURE_COLUMNS = [
-    "temperature",
-    "humidity",
-    "co",
-    "lpg",
-    "smoke",
-    "light_intensity",
-    "motion_status"
-]
-
-def main():
-    try:
-        if len(sys.argv) < 2:
-            raise ValueError("Input JSON tidak ditemukan.")
-
-        input_json = sys.argv[1]
-        data = json.loads(input_json)
-
-        input_data = pd.DataFrame([{
-            "temperature": float(data["temperature"]),
-            "humidity": float(data["humidity"]),
-            "co": float(data["co"]),
-            "lpg": float(data["lpg"]),
-            "smoke": float(data["smoke"]),
-            "light_intensity": float(data["light_intensity"]),
-            "motion_status": int(data["motion_status"])
-        }], columns=FEATURE_COLUMNS)
-
-        model = joblib.load(MODEL_PATH)
-        scaler = joblib.load(SCALER_PATH)
-        label_encoder = joblib.load(LABEL_ENCODER_PATH)
-
-        input_scaled = scaler.transform(input_data)
-
-        prediction_code = model.predict(input_scaled)[0]
-        prediction_proba = model.predict_proba(input_scaled)[0]
-
-        prediction_label = label_encoder.inverse_transform([prediction_code])[0]
-        prediction_score = float(max(prediction_proba))
-
-        result = {
-            "status": "success",
-            "prediction_label": prediction_label,
-            "prediction_score": round(prediction_score, 4),
-            "prediction_code": int(prediction_code)
-        }
-
-        print(json.dumps(result))
-
-    except Exception as e:
-        result = {
-            "status": "error",
-            "message": str(e)
-        }
-
-        print(json.dumps(result))
-
-
-if __name__ == "__main__":
-    main()
-```
-
-## 10. Tes Script Python Manual
-
-Jalankan:
-
-```bash
-cd /Applications/XAMPP/htdocs/iot-ai-sensor-system
-source venv/bin/activate
-```
-
-Tes prediksi:
-
-```bash
-python ai_model/predict.py '{"temperature":36.5,"humidity":70,"co":0.005,"lpg":0.008,"smoke":0.45,"light_intensity":700,"motion_status":1}'
-```
-
-Contoh output:
-
-```json
-{"status": "success", "prediction_label": "WARNING", "prediction_score": 0.87, "prediction_code": 2}
-```
-
-Jika output JSON muncul, script Python sudah berjalan.
-
-## 11. API Insert Data Sensor
-
-Buat file:
-
-```text
-api/insert_sensor.php
-```
-
-Isi file:
-
-```php
-<?php
-
-header("Content-Type: application/json");
-require_once "../config/database.php";
-
-if ($_SERVER["REQUEST_METHOD"] !== "POST") {
-    http_response_code(405);
-    echo json_encode([
-        "status" => "error",
-        "message" => "Method harus POST"
-    ]);
-    exit;
-}
-
-$device_id = $_POST["device_id"] ?? null;
-$temperature = $_POST["temperature"] ?? null;
-$humidity = $_POST["humidity"] ?? null;
-$co = $_POST["co"] ?? null;
-$lpg = $_POST["lpg"] ?? null;
-$smoke = $_POST["smoke"] ?? null;
-$light_intensity = $_POST["light_intensity"] ?? null;
-$motion_status = $_POST["motion_status"] ?? null;
-
-if (
-    $device_id === null ||
-    $temperature === null ||
-    $humidity === null ||
-    $co === null ||
-    $lpg === null ||
-    $smoke === null ||
-    $light_intensity === null ||
-    $motion_status === null
-) {
-    http_response_code(400);
-    echo json_encode([
-        "status" => "error",
-        "message" => "Data sensor belum lengkap"
-    ]);
-    exit;
-}
-
-$device_id = trim($device_id);
-$temperature = (float) $temperature;
-$humidity = (float) $humidity;
-$co = (float) $co;
-$lpg = (float) $lpg;
-$smoke = (float) $smoke;
-$light_intensity = (int) $light_intensity;
-$motion_status = (int) $motion_status;
-
-$stmt = $conn->prepare("
-    INSERT INTO sensor_data 
-    (
-        device_id,
-        temperature,
-        humidity,
-        co,
-        lpg,
-        smoke,
-        light_intensity,
-        motion_status
-    )
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-");
-
-$stmt->bind_param(
-    "sdddddii",
-    $device_id,
-    $temperature,
-    $humidity,
-    $co,
-    $lpg,
-    $smoke,
-    $light_intensity,
-    $motion_status
-);
-
-if ($stmt->execute()) {
-    echo json_encode([
-        "status" => "success",
-        "message" => "Data sensor berhasil disimpan",
-        "insert_id" => $stmt->insert_id
-    ]);
-} else {
-    http_response_code(500);
-    echo json_encode([
-        "status" => "error",
-        "message" => "Gagal menyimpan data sensor",
-        "error" => $stmt->error
-    ]);
-}
-
-$stmt->close();
-$conn->close();
-
-?>
-```
-
-## 12. API Prediksi dengan Model Python
-
-Buat file:
-
-```text
-api/predict_sensor.php
-```
-
-Isi file:
-
-```php
-<?php
-
-header("Content-Type: application/json");
-require_once "../config/database.php";
-
-$sql = "SELECT * FROM sensor_data ORDER BY id DESC LIMIT 1";
-$result = $conn->query($sql);
-
-if (!$result || $result->num_rows == 0) {
-    echo json_encode([
-        "status" => "error",
-        "message" => "Belum ada data sensor"
-    ]);
-    exit;
-}
-
-$sensor = $result->fetch_assoc();
-
-$inputData = [
-    "temperature" => (float) $sensor["temperature"],
-    "humidity" => (float) $sensor["humidity"],
-    "co" => (float) $sensor["co"],
-    "lpg" => (float) $sensor["lpg"],
-    "smoke" => (float) $sensor["smoke"],
-    "light_intensity" => (float) $sensor["light_intensity"],
-    "motion_status" => (int) $sensor["motion_status"]
-];
-
-$jsonInput = json_encode($inputData);
-
-$projectRoot = realpath(__DIR__ . "/..");
-
-$pythonPath = $projectRoot . "/venv/bin/python";
-$scriptPath = $projectRoot . "/ai_model/predict.py";
-
-if (!file_exists($pythonPath)) {
-    echo json_encode([
-        "status" => "error",
-        "message" => "Python virtual environment tidak ditemukan di: " . $pythonPath
-    ]);
-    exit;
-}
-
-if (!file_exists($scriptPath)) {
-    echo json_encode([
-        "status" => "error",
-        "message" => "File predict.py tidak ditemukan di: " . $scriptPath
-    ]);
-    exit;
-}
-
-$command = escapeshellcmd($pythonPath) . " " .
-           escapeshellarg($scriptPath) . " " .
-           escapeshellarg($jsonInput);
-
-$output = shell_exec($command);
-
-if ($output === null || trim($output) === "") {
-    echo json_encode([
-        "status" => "error",
-        "message" => "Python script tidak menghasilkan output."
-    ]);
-    exit;
-}
-
-$prediction = json_decode($output, true);
-
-if (!$prediction) {
-    echo json_encode([
-        "status" => "error",
-        "message" => "Output Python tidak valid.",
-        "raw_output" => $output
-    ]);
-    exit;
-}
-
-if ($prediction["status"] !== "success") {
-    echo json_encode($prediction);
-    exit;
-}
-
-$predictionLabel = $prediction["prediction_label"];
-$predictionScore = (float) $prediction["prediction_score"];
-$sensorId = (int) $sensor["id"];
-
-$predictionReason = "Model AI memprediksi status " . $predictionLabel .
-    " berdasarkan fitur temperature, humidity, CO, LPG, smoke, light intensity, dan motion status.";
-
-$stmt = $conn->prepare("
-    UPDATE sensor_data
-    SET prediction_label = ?, prediction_score = ?, prediction_reason = ?
-    WHERE id = ?
-");
-
-$stmt->bind_param("sdsi", $predictionLabel, $predictionScore, $predictionReason, $sensorId);
-
-if ($stmt->execute()) {
-    echo json_encode([
-        "status" => "success",
-        "message" => "Prediksi berhasil diproses menggunakan model AI.",
-        "prediction_label" => $predictionLabel,
-        "prediction_score" => $predictionScore,
-        "prediction_reason" => $predictionReason
-    ]);
-} else {
-    echo json_encode([
-        "status" => "error",
-        "message" => "Gagal menyimpan hasil prediksi ke database.",
-        "error" => $stmt->error
-    ]);
-}
-
-$stmt->close();
-$conn->close();
-
-?>
-```
-
-## 13. API Generate dan Prediksi Realtime
-
-Buat file:
-
-```text
-api/generate_and_predict.php
-```
-
-Isi file:
-
-```php
-<?php
-
-header("Content-Type: application/json");
-require_once "../config/database.php";
-
-$device_id = "IOT-DEVICE-001";
-
-$temperature = rand(250, 420) / 10;
-$humidity = rand(300, 900) / 10;
-$co = rand(100, 900) / 100000;
-$lpg = rand(100, 1200) / 100000;
-$smoke = rand(100, 900) / 1000;
-$light_intensity = rand(0, 1000);
-$motion_status = rand(0, 1);
-
-$stmt = $conn->prepare("
-    INSERT INTO sensor_data
-    (
-        device_id,
-        temperature,
-        humidity,
-        co,
-        lpg,
-        smoke,
-        light_intensity,
-        motion_status
-    )
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-");
-
-$stmt->bind_param(
-    "sdddddii",
-    $device_id,
-    $temperature,
-    $humidity,
-    $co,
-    $lpg,
-    $smoke,
-    $light_intensity,
-    $motion_status
-);
-
-if (!$stmt->execute()) {
-    echo json_encode([
-        "status" => "error",
-        "message" => "Gagal menyimpan data sensor",
-        "error" => $stmt->error
-    ]);
-    exit;
-}
-
-$sensor_id = $stmt->insert_id;
-$stmt->close();
-
-$inputData = [
-    "temperature" => (float) $temperature,
-    "humidity" => (float) $humidity,
-    "co" => (float) $co,
-    "lpg" => (float) $lpg,
-    "smoke" => (float) $smoke,
-    "light_intensity" => (float) $light_intensity,
-    "motion_status" => (int) $motion_status
-];
-
-$jsonInput = json_encode($inputData);
-
-$projectRoot = realpath(__DIR__ . "/..");
-
-$pythonPath = $projectRoot . "/venv/bin/python";
-$scriptPath = $projectRoot . "/ai_model/predict.py";
-
-$command = escapeshellcmd($pythonPath) . " " .
-           escapeshellarg($scriptPath) . " " .
-           escapeshellarg($jsonInput);
-
-$output = shell_exec($command);
-
-if ($output === null || trim($output) === "") {
-    echo json_encode([
-        "status" => "error",
-        "message" => "Python script tidak menghasilkan output"
-    ]);
-    exit;
-}
-
-$prediction = json_decode($output, true);
-
-if (!$prediction || $prediction["status"] !== "success") {
-    echo json_encode([
-        "status" => "error",
-        "message" => "Prediksi gagal",
-        "raw_output" => $output
-    ]);
-    exit;
-}
-
-$prediction_label = $prediction["prediction_label"];
-$prediction_score = (float) $prediction["prediction_score"];
-
-$prediction_reason = "Model AI memprediksi status " . $prediction_label .
-    " berdasarkan fitur temperature, humidity, CO, LPG, smoke, light intensity, dan motion status.";
-
-$updateStmt = $conn->prepare("
-    UPDATE sensor_data
-    SET prediction_label = ?, prediction_score = ?, prediction_reason = ?
-    WHERE id = ?
-");
-
-$updateStmt->bind_param(
-    "sdsi",
-    $prediction_label,
-    $prediction_score,
-    $prediction_reason,
-    $sensor_id
-);
-
-if (!$updateStmt->execute()) {
-    echo json_encode([
-        "status" => "error",
-        "message" => "Gagal menyimpan hasil prediksi",
-        "error" => $updateStmt->error
-    ]);
-    exit;
-}
-
-$updateStmt->close();
-
-$finalStmt = $conn->prepare("
-    SELECT * FROM sensor_data
-    WHERE id = ?
-    LIMIT 1
-");
-
-$finalStmt->bind_param("i", $sensor_id);
-$finalStmt->execute();
-
-$result = $finalStmt->get_result();
-$finalData = $result->fetch_assoc();
-
-$finalStmt->close();
-$conn->close();
-
-echo json_encode([
-    "status" => "success",
-    "message" => "Data sensor berhasil dibuat dan diprediksi otomatis",
-    "data" => $finalData
-]);
-
-?>
-```
-
-## 14. API Riwayat Data Sensor
-
-Buat file:
-
-```text
-api/get_sensor_history.php
-```
-
-Isi file:
-
-```php
-<?php
-
-header("Content-Type: application/json");
-require_once "../config/database.php";
-
-$limit = $_GET["limit"] ?? 20;
-$limit = (int) $limit;
-
-if ($limit <= 0 || $limit > 100) {
-    $limit = 20;
-}
-
-$stmt = $conn->prepare("
-    SELECT * FROM sensor_data
-    ORDER BY id DESC
-    LIMIT ?
-");
-
-$stmt->bind_param("i", $limit);
-$stmt->execute();
-
-$result = $stmt->get_result();
-
-$data = [];
-
-while ($row = $result->fetch_assoc()) {
-    $data[] = $row;
-}
-
-echo json_encode([
-    "status" => "success",
-    "data" => $data
-]);
-
-$stmt->close();
-$conn->close();
-
-?>
-```
-
-## 15. Simulasi Sensor Manual
-
-Buat file:
-
-```text
-simulation/generate_sensor.php
-```
-
-Isi file:
-
-```php
-<?php
-
-header("Content-Type: application/json");
-
-$device_id = "IOT-DEVICE-001";
-
-$temperature = rand(250, 420) / 10;
-$humidity = rand(300, 900) / 10;
-$co = rand(100, 900) / 100000;
-$lpg = rand(100, 1200) / 100000;
-$smoke = rand(100, 900) / 1000;
-$light_intensity = rand(0, 1000);
-$motion_status = rand(0, 1);
-
-$url = "http://localhost/iot-ai-sensor-system/api/insert_sensor.php";
-
-$data = [
-    "device_id" => $device_id,
-    "temperature" => $temperature,
-    "humidity" => $humidity,
-    "co" => $co,
-    "lpg" => $lpg,
-    "smoke" => $smoke,
-    "light_intensity" => $light_intensity,
-    "motion_status" => $motion_status
-];
-
-$options = [
-    "http" => [
-        "header" => "Content-Type: application/x-www-form-urlencoded\r\n",
-        "method" => "POST",
-        "content" => http_build_query($data),
-        "timeout" => 10
-    ]
-];
-
-$context = stream_context_create($options);
-$response = file_get_contents($url, false, $context);
-
-if ($response === false) {
-    http_response_code(500);
-    echo json_encode([
-        "status" => "error",
-        "message" => "Gagal mengirim data sensor ke API"
-    ]);
-    exit;
-}
-
-echo $response;
-
-?>
-```
-
-## 16. Dashboard Web
-
-Dashboard utama berada pada file:
-
-```text
-index.php
-```
-
-Fungsi utama dashboard:
-
-1. Menampilkan data sensor terbaru.
-2. Menampilkan riwayat data sensor.
-3. Menjalankan generate sensor manual.
-4. Menjalankan prediksi manual.
-5. Menjalankan generate dan prediksi otomatis.
-6. Menjalankan realtime setiap 30 detik.
-
-## 17. Cara Menjalankan Aplikasi
-
-Aktifkan XAMPP:
-
-```text
-Apache: Start
-MySQL: Start
-```
-
-Pastikan database sudah dibuat melalui phpMyAdmin.
-
-Buka aplikasi:
-
-```text
-http://localhost/iot-ai-sensor-system/
-```
-
-## 18. Urutan Penggunaan
-
-Untuk penggunaan manual:
-
-```text
-1. Klik Generate Data Sensor.
-2. Klik Prediksi dengan AI.
-3. Hasil prediksi muncul di dashboard.
-```
-
-Untuk penggunaan otomatis:
-
-```text
-1. Klik Start Realtime 30 Detik.
-2. Sistem akan generate data sensor baru.
-3. Sistem langsung menjalankan prediksi AI.
-4. Dashboard diperbarui otomatis.
-5. Proses diulang setiap 30 detik.
-```
-
-## 19. Troubleshooting
-
-### 19.1 Python virtual environment tidak ditemukan
-
-Pesan error:
-
-```text
-Python virtual environment tidak ditemukan
-```
-
-Solusi:
-
-Pastikan folder `venv` berada di root project:
-
-```text
-iot-ai-sensor-system/venv/
-```
-
-Jika belum ada, buat ulang:
-
-```bash
-python3 -m venv venv
-source venv/bin/activate
-pip install pandas numpy scikit-learn joblib
-```
-
-### 19.2 File predict.py tidak ditemukan
-
-Pesan error:
-
-```text
-File predict.py tidak ditemukan
-```
-
-Solusi:
-
-Pastikan file berada di:
-
-```text
-ai_model/predict.py
-```
-
-### 19.3 File model tidak ditemukan
-
-Pastikan tiga file ini ada di folder `ai_model`:
-
-```text
-model.pkl
-scaler.pkl
-label_encoder.pkl
-```
-
-### 19.4 Output Python tidak valid
-
-Pesan error:
-
-```text
-Output Python tidak valid
-```
-
-Solusi:
-
-Tes script Python secara manual:
-
-```bash
-source venv/bin/activate
-python ai_model/predict.py '{"temperature":36.5,"humidity":70,"co":0.005,"lpg":0.008,"smoke":0.45,"light_intensity":700,"motion_status":1}'
-```
-
-Jika error muncul, perbaiki dependency Python atau cek kompatibilitas versi scikit-learn.
-
-### 19.5 shell_exec tidak berjalan
-
-Jika PHP tidak bisa menjalankan Python, cek apakah `shell_exec()` aktif.
-
-Buat file `check_shell.php`:
-
-```php
-<?php
-echo shell_exec("whoami");
-?>
-```
-
-Buka melalui browser:
-
-```text
-http://localhost/iot-ai-sensor-system/check_shell.php
-```
-
-Jika tidak ada output, kemungkinan `shell_exec()` dinonaktifkan di konfigurasi PHP.
-
-### 19.6 Permission error pada macOS
-
-Jika Python tidak bisa dipanggil, jalankan:
-
-```bash
-chmod +x venv/bin/python
-chmod +x ai_model/predict.py
-```
-
-## 20. Endpoint API
-
-Daftar endpoint:
-
-| Endpoint | Method | Fungsi |
-|---|---|---|
-| `/api/insert_sensor.php` | POST | Menyimpan data sensor |
-| `/api/predict_sensor.php` | GET | Memprediksi data sensor terbaru |
-| `/api/get_sensor_history.php` | GET | Mengambil riwayat data sensor |
-| `/api/generate_and_predict.php` | GET | Generate data sensor dan prediksi otomatis |
-| `/simulation/generate_sensor.php` | GET | Generate data sensor manual |
-
-## 21. Catatan Penting
-
-Project ini menggunakan model AI yang sudah dibuat sebelumnya. Dokumentasi ini tidak membahas proses training model di Google Colab.
-
-Aplikasi ini berfokus pada:
-
-1. Pembuatan web PHP MySQL.
-2. Penyimpanan data sensor.
-3. Integrasi PHP dengan Python lokal.
-4. Pembacaan file model `.pkl`.
-5. Prediksi otomatis pada dashboard web.
-
-## 22. Analisis Integrasi Tiga Platform: IoT, Web, dan AI
-
-Sistem ini mengintegrasikan tiga platform teknologi — Internet of Things (IoT), Web, dan Artificial Intelligence (AI) — dalam satu kesatuan arsitektur yang saling bergantung. Setiap platform memiliki tanggung jawab yang spesifik, dan ketiganya membentuk alur data yang utuh: dari akuisisi data sensor hingga penyajian hasil prediksi kepada pengguna.
-
-### 22.1 Hasil Uji Coba Sistem
+## 4. Hasil Uji Coba
 
 ![Tampilan Dashboard](tampilan.png)
 
-Gambar di atas merupakan tangkapan layar dashboard saat sistem berjalan. Pengujian menunjukkan bahwa seluruh rantai integrasi — mulai dari simulasi data sensor, penyimpanan ke database MySQL, inferensi model Python, hingga rendering dashboard web — telah berfungsi sesuai dengan yang dirancang. Dashboard menampilkan data sensor terkini dalam bentuk kartu informatif, hasil prediksi AI dengan skor kepercayaan, serta tabel riwayat data yang diperbarui secara dinamis.
+Gambar di atas merupakan tangkapan layar dashboard sistem saat proses uji coba berlangsung. Dashboard diakses melalui peramban web pada alamat `http://localhost/iot-ai-sensor-system/`. Pengujian dilakukan dengan mengaktifkan mode real-time yang menghasilkan data sensor baru dan menjalankan prediksi AI secara otomatis setiap 30 detik.
 
-### 22.2 Peran dan Fungsi Setiap Platform
+Berdasarkan uji coba yang telah dilakukan, seluruh fungsi sistem berjalan sebagai berikut:
 
-**Internet of Things (IoT)** berperan sebagai sumber data lingkungan. Meskipun lingkungan pengembangan ini menggunakan simulasi berbasis PHP, data yang dihasilkan merepresentasikan pembacaan sensor fisik pada dunia nyata. Tujuh parameter — temperature, humidity, CO, LPG, smoke, light_intensity, dan motion_status — dikirimkan ke server melalui mekanisme HTTP POST. Perangkat IoT menghasilkan data secara periodik, dan data tersebut menjadi masukan utama bagi seluruh proses analisis dan pengambilan keputusan.
+1. **Simulasi data sensor**: Data sensor berhasil dihasilkan secara acak dalam rentang nilai yang telah ditentukan dan tersimpan di database MySQL.
+2. **Inferensi model AI**: Skrip Python berhasil memuat file model `.pkl` dari direktori `ai_model/`, melakukan normalisasi fitur, dan mengembalikan hasil prediksi dalam format JSON.
+3. **Penyimpanan hasil prediksi**: Label prediksi, skor kepercayaan, dan alasan prediksi berhasil disimpan ke dalam tabel `sensor_data`.
+4. **Dashboard web**: Data sensor terkini dan hasil prediksi berhasil ditampilkan dalam bentuk kartu informatif. Tabel riwayat menampilkan 20 data sensor terakhir.
+5. **Mode real-time**: Sistem berhasil melakukan siklus generate dan prediksi secara berulang setiap 30 detik tanpa intervensi pengguna.
 
-**Platform Web** berfungsi sebagai penghubung dan antarmuka pengguna. PHP bertindak sebagai middleware yang menerima data dari IoT, menyimpannya ke MySQL, memanggil skrip Python untuk inferensi AI, dan menyimpan kembali hasil prediksi ke database. JavaScript pada dashboard menambahkan kemampuan real-time dengan memanggil endpoint `api/generate_and_predict.php` secara otomatis setiap tiga puluh detik melalui mekanisme polling. Pengguna berinteraksi dengan sistem melalui antarmuka web yang menampilkan data sensor, hasil prediksi (NORMAL, WARNING, atau DANGER), skor kepercayaan, alasan prediksi, serta tabel riwayat.
+Hasil uji coba membuktikan bahwa seluruh rantai integrasi — dari simulasi sensor, penyimpanan database, inferensi model Python, hingga rendering dashboard — telah berfungsi sesuai dengan rancangan.
 
-**Artificial Intelligence (AI)** bertindak sebagai mesin pengambil keputusan. Model Random Forest yang telah dilatih di Google Colab disimpan dalam format `.pkl` dan dijalankan secara lokal oleh Python. Model menerima tujuh fitur sensor yang telah dinormalisasi menggunakan scaler, kemudian mengklasifikasikan kondisi lingkungan ke dalam tiga kelas. Hasil klasifikasi dilengkapi dengan skor kepercayaan yang menunjukkan tingkat keyakinan model terhadap prediksi yang dihasilkan.
+---
 
-### 22.3 Alur Integrasi Antarplatform
+## 5. Analisis Integrasi Tiga Platform: IoT, Web, dan AI
 
-Alur kerja sistem mengikuti siklus yang menghubungkan ketiga platform secara berurutan:
+Sistem ini mengintegrasikan tiga platform teknologi — Internet of Things (IoT), Web, dan Artificial Intelligence (AI) — dalam satu kesatuan arsitektur yang saling bergantung. Setiap platform memiliki tanggung jawab yang spesifik, dan ketiganya membentuk alur data yang utuh: dari akuisisi data sensor hingga penyajian hasil prediksi kepada pengguna.
 
-1. **IoT ke Web**: Data sensor dikirim dari perangkat IoT (atau simulasi PHP) ke server melalui endpoint API `api/insert_sensor.php`. Data dikirimkan dalam format application/x-www-form-urlencoded melalui metode HTTP POST.
+### 5.1 Peran dan Fungsi Setiap Platform
 
-2. **Web ke Database**: PHP menerima data sensor dan menyimpannya ke dalam tabel `sensor_data` di MySQL. Data mentah ini menjadi sumber utama untuk proses inferensi AI dan referensi data historis.
+#### 5.1.1 Internet of Things (IoT) sebagai Sumber Data
 
-3. **Web ke AI**: PHP mengambil data sensor terbaru dari database, mengonversinya ke dalam format JSON, dan memanggil skrip Python `ai_model/predict.py` melalui fungsi `shell_exec()`. Data dikirimkan sebagai argumen command line dalam bentuk JSON string.
+Internet of Things berperan sebagai sumber data lingkungan. Dalam proyek ini, peran IoT direpresentasikan melalui simulasi berbasis PHP. Parameter-parameter yang dihasilkan — temperature, humidity, CO, LPG, smoke, light_intensity, dan motion_status — merepresentasikan pembacaan sensor fisik pada dunia nyata.
 
-4. **AI ke Model**: Python menerima input JSON, membangun DataFrame menggunakan pandas, menormalisasi fitur menggunakan scaler yang telah dimuat dari `scaler.pkl`, dan menjalankan prediksi menggunakan model Random Forest dari `model.pkl`. Label prediksi diterjemahkan menggunakan `label_encoder.pkl`.
+Setiap data sensor dikirimkan ke server melalui protokol HTTP dengan metode POST. Mekanisme ini meniru cara kerja perangkat IoT sungguhan yang mengirimkan data secara periodik ke server pusat. Data yang terkumpul menjadi masukan utama bagi seluruh proses analisis dan pengambilan keputusan dalam sistem.
 
-5. **AI ke Web**: Python mengembalikan hasil prediksi dalam bentuk JSON yang berisi label klasifikasi (NORMAL, WARNING, atau DANGER), skor kepercayaan, dan kode prediksi. Output ini ditangkap oleh PHP melalui nilai kembali `shell_exec()`.
+#### 5.1.2 Web Platform sebagai Antarmuka dan Middleware
 
-6. **Web ke Database**: PHP menyimpan label prediksi, skor kepercayaan, dan alasan prediksi ke dalam baris data yang sesuai di tabel `sensor_data` melalui perintah UPDATE.
+Platform web berfungsi dalam dua kapasitas sekaligus. Pertama, sebagai **middleware** yang menghubungkan IoT dengan AI. PHP menerima data dari simulasi sensor, menyimpannya ke MySQL, memanggil skrip Python untuk inferensi AI, dan menyimpan kembali hasil prediksi ke database. Komunikasi antara PHP dan Python dilakukan melalui fungsi `shell_exec()` yang mengirimkan data dalam format JSON melalui argumen command line.
 
-7. **Database ke Web (tampilan)**: PHP mengambil data lengkap yang telah diperbarui dan menampilkannya pada dashboard. Data sensor terkini ditampilkan dalam bentuk kartu, sedangkan riwayat data ditampilkan dalam bentuk tabel.
+Kedua, sebagai **antarmuka pengguna** (user interface). Dashboard web yang dibangun dengan HTML, CSS, dan JavaScript menampilkan data sensor dalam bentuk kartu-kartu informatif. JavaScript menambahkan kemampuan real-time dengan memanggil endpoint `api/generate_and_predict.php` secara otomatis setiap tiga puluh detik melalui mekanisme polling AJAX. Pengguna dapat melihat data sensor terkini, hasil prediksi dengan skor kepercayaan, alasan prediksi, serta tabel riwayat dua puluh data terakhir.
 
-8. **Web ke IoT (umpan balik)**: Apabila pengguna mengaktifkan mode real-time, langkah pertama hingga ketujuh berulang secara otomatis setiap tiga puluh detik. JavaScript pada halaman dashboard memicu siklus baru tanpa intervensi pengguna.
+#### 5.1.3 Artificial Intelligence (AI) sebagai Mesin Inferensi
 
-### 22.4 Sinergi dan Manfaat Integrasi
+Artificial Intelligence bertindak sebagai mesin pengambil keputusan. Model Random Forest yang telah dilatih menggunakan Google Colab disimpan dalam tiga file artefak: `model.pkl` (model terlatih), `scaler.pkl` (objek StandardScaler), dan `label_encoder.pkl` (objek LabelEncoder). Ketiga file tersebut dimuat oleh skrip Python `predict.py` pada saat inferensi.
 
-Integrasi ketiga platform menghasilkan kemampuan yang tidak mungkin dicapai oleh satu platform secara mandiri. IoT menyediakan data aktual atau simulasi dari lingkungan fisik. Web menyediakan aksesibilitas lintas perangkat dan orkestrasi alur kerja yang menghubungkan seluruh komponen. AI menyediakan kemampuan klasifikasi dan pengambilan keputusan secara otomatis berdasarkan data yang diterima. Ketiga platform membentuk sistem pemantauan lingkungan yang cerdas, otonom, dan dapat diakses dari mana saja melalui peramban web.
+Proses inferensi berlangsung sebagai berikut:
 
-## 23. Ringkasan Alur Kerja
+1. **Penerimaan input**: Skrip Python menerima data sensor dalam format JSON melalui argumen command line.
+2. **Pembentukan DataFrame**: Pustaka pandas menyusun data ke dalam DataFrame dengan urutan kolom yang sesuai dengan saat pelatihan model.
+3. **Normalisasi fitur**: Objek StandardScaler dari `scaler.pkl` menormalkan data agar memiliki skala yang seragam.
+4. **Prediksi**: Model Random Forest dari `model.pkl` mengklasifikasikan data ke dalam tiga kelas: NORMAL, WARNING, atau DANGER.
+5. **Skor kepercayaan**: Model menghitung probabilitas untuk setiap kelas dan mengembalikan nilai probabilitas tertinggi sebagai skor kepercayaan.
 
-```text
-User membuka dashboard
-      ↓
-User klik Start Realtime
-      ↓
-JavaScript memanggil api/generate_and_predict.php setiap 30 detik
-      ↓
-PHP membuat data sensor simulasi
-      ↓
-PHP menyimpan data ke MySQL
-      ↓
-PHP memanggil ai_model/predict.py
-      ↓
-Python membaca model.pkl, scaler.pkl, label_encoder.pkl
-      ↓
-Python menghasilkan prediksi
-      ↓
-PHP menyimpan hasil prediksi
-      ↓
-Dashboard diperbarui otomatis
-```
+### 5.2 Alur Integrasi Antarplatform
 
-## 24. Status Project
+Alur kerja sistem mengikuti siklus yang menghubungkan ketiga platform secara berurutan. Berikut adalah delapan langkah integrasi yang membentuk siklus tersebut:
 
-Project ini merupakan prototipe pembelajaran untuk integrasi:
+**Langkah 1 — IoT ke Web (Pengiriman Data Sensor)**
 
-```text
-PHP Web Application
-MySQL Database
-Python AI Inference
-IoT Sensor Simulation
-Realtime Dashboard
-```
+Data sensor dikirim dari perangkat IoT (atau simulasi PHP) ke server melalui endpoint `api/insert_sensor.php`. Data dikirimkan dalam format `application/x-www-form-urlencoded` melalui metode HTTP POST. Endpoint memvalidasi kelengkapan data sebelum memprosesnya lebih lanjut.
 
+**Langkah 2 — Web ke Database (Penyimpanan Data Mentah)**
 
+PHP menyimpan data sensor ke dalam tabel `sensor_data` di MySQL menggunakan pernyataan prepared statement untuk mencegah serangan SQL injection. Data mentah ini menjadi sumber utama untuk proses inferensi AI dan referensi data historis.
+
+**Langkah 3 — Web ke AI (Pemanggilan Skrip Python)**
+
+PHP mengambil data sensor terbaru dari database, mengonversinya ke dalam format JSON, dan memanggil skrip Python `ai_model/predict.py` melalui fungsi `shell_exec()`. Data dikirimkan sebagai argumen command line. PHP menggunakan `escapeshellcmd()` dan `escapeshellarg()` untuk mengamankan perintah shell.
+
+**Langkah 4 — AI ke Model (Inferensi Machine Learning)**
+
+Python menerima input JSON dan membangun DataFrame menggunakan pandas dengan urutan kolom yang sesuai dengan saat pelatihan (`temperature`, `humidity`, `co`, `lpg`, `smoke`, `light_intensity`, `motion_status`). Data dinormalisasi menggunakan scaler dari `scaler.pkl`, kemudian model Random Forest dari `model.pkl` melakukan prediksi. Label numerik hasil prediksi diterjemahkan kembali menjadi label kategorikal (NORMAL, WARNING, atau DANGER) menggunakan `label_encoder.pkl`.
+
+**Langkah 5 — AI ke Web (Pengembalian Hasil)**
+
+Python mengembalikan hasil prediksi dalam bentuk JSON yang berisi tiga informasi: `prediction_label` (string), `prediction_score` (float), dan `prediction_code` (integer). Output ini ditangkap oleh PHP melalui nilai kembali fungsi `shell_exec()`.
+
+**Langkah 6 — Web ke Database (Penyimpanan Hasil Prediksi)**
+
+PHP menyimpan label prediksi, skor kepercayaan, dan alasan prediksi ke dalam baris data yang sesuai di tabel `sensor_data` melalui perintah UPDATE. Alasan prediksi merupakan teks deskriptif yang menjelaskan bahwa model memprediksi status berdasarkan tujuh fitur sensor.
+
+**Langkah 7 — Database ke Web (Penampilan Dashboard)**
+
+PHP mengambil data lengkap yang telah diperbarui dan menampilkannya pada dashboard. Data sensor terkini ditampilkan dalam bentuk kartu dengan kode warna: hijau untuk status NORMAL, kuning untuk WARNING, dan merah untuk DANGER. Riwayat data ditampilkan dalam bentuk tabel yang memuat dua puluh baris terakhir.
+
+**Langkah 8 — Web ke IoT (Umpan Balik dan Perulangan)**
+
+Apabila pengguna mengaktifkan mode real-time melalui tombol "Start Realtime 30 Detik" pada dashboard, langkah pertama hingga ketujuh berulang secara otomatis setiap tiga puluh detik. JavaScript pada halaman dashboard memicu siklus baru melalui pemanggilan endpoint `api/generate_and_predict.php` tanpa intervensi pengguna. Tombol "Stop Realtime" menghentikan perulangan tersebut.
+
+### 5.3 Sinergi dan Manfaat Integrasi
+
+Integrasi ketiga platform menghasilkan kemampuan yang tidak mungkin dicapai oleh satu platform secara mandiri. Analisis sinergi antarplatform adalah sebagai berikut:
+
+| Aspek | IoT | Web | AI |
+|-------|-----|-----|-----|
+| **Peran utama** | Sumber data lingkungan | Penghubung dan antarmuka | Mesin inferensi dan keputusan |
+| **Keluaran** | Data mentah sensor | Dashboard visual | Label klasifikasi + skor |
+| **Ketergantungan** | Membutuhkan Web untuk penyimpanan | Membutuhkan IoT untuk data dan AI untuk prediksi | Membutuhkan Web untuk pemanggilan |
+| **Nilai tambah** | Data aktual/simulasi dari fisik | Aksesibilitas lintas perangkat | Otomatisasi pengambilan keputusan |
+
+**IoT** menyediakan data aktual atau simulasi dari lingkungan fisik. Tanpa IoT, sistem tidak memiliki input untuk dianalisis. **Web** menyediakan aksesibilitas lintas perangkat dan orkestrasi alur kerja yang menghubungkan seluruh komponen. Tanpa Web, data IoT tidak dapat disimpan dan model AI tidak dapat diakses oleh pengguna. **AI** menyediakan kemampuan klasifikasi dan pengambilan keputusan secara otomatis berdasarkan data yang diterima. Tanpa AI, data IoT hanya akan menjadi angka mentah tanpa makna prediktif.
+
+Ketiga platform membentuk sistem pemantauan lingkungan yang cerdas, otonom, dan dapat diakses dari mana saja melalui peramban web.
+
+---
+
+## 6. Kesimpulan
+
+Berdasarkan hasil perancangan, implementasi, dan uji coba yang telah dilakukan, dapat ditarik beberapa kesimpulan sebagai berikut:
+
+1. **Integrasi tiga platform berhasil diimplementasikan**. Sistem mampu menghubungkan IoT (simulasi sensor), Web (PHP dashboard), dan AI (model Random Forest) dalam satu kesatuan arsitektur yang saling bergantung.
+
+2. **Model machine learning dapat diintegrasikan ke dalam aplikasi web tanpa Flask atau framework terpisah**. PHP memanggil Python secara langsung melalui `shell_exec()`, sehingga tidak diperlukan REST API tambahan. Pendekatan ini sederhana namun efektif untuk lingkungan server lokal.
+
+3. **Sistem mampu beroperasi secara real-time dan otonom**. Mekanisme polling AJAX setiap 30 detik memungkinkan sistem menghasilkan data, melakukan prediksi, dan memperbarui tampilan secara otomatis tanpa intervensi pengguna.
+
+4. **Prediksi AI memberikan nilai tambah pada data sensor mentah**. Data lingkungan yang semula hanya berupa angka-angka dapat diinterpretasikan menjadi status yang bermakna (NORMAL, WARNING, DANGER) lengkap dengan skor kepercayaan.
+
+Proyek ini membuktikan bahwa integrasi IoT, Web, dan AI dapat diwujudkan dengan teknologi yang relatif sederhana — PHP, MySQL, dan Python — tanpa memerlukan infrastruktur cloud yang kompleks. Sistem ini dapat menjadi fondasi untuk pengembangan lebih lanjut, seperti penambahan perangkat IoT fisik, penggunaan model deep learning, atau penerapan notifikasi otomatis.
+
+---
+
+**Dokumen ini disusun sebagai laporan proyek integrasi IoT, Web, dan AI.**  
+Lingkungan pengembangan: Linux / XAMPP / PHP Native / MySQL / Python 3.12 / scikit-learn 1.8.0
